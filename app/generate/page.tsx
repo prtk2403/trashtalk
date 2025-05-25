@@ -6,6 +6,7 @@ import GeneratorDashboard from "@/components/generator-dashboard"
 import Link from "next/link"
 import { Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Footer } from "@/components/footer"
 
 export default function GeneratePage() {
   const [mounted, setMounted] = useState(false)
@@ -43,7 +44,7 @@ export default function GeneratePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex flex-col">
       {/* Top Navigation */}
       <nav className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
@@ -63,8 +64,12 @@ export default function GeneratePage() {
         </div>
       </nav>
 
-      {/* Main Content */}
-      <GeneratorDashboard />
+      <div className="flex-1">
+        <GeneratorDashboard />
+      </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }

@@ -4,7 +4,9 @@ import { useState, useEffect } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import LandingPage from "@/components/landing-page"
 import { Trash } from "lucide-react"
-
+import { Footer } from "@/components/footer"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 export default function Home() {
   const [mounted, setMounted] = useState(false)
 
@@ -45,33 +47,26 @@ export default function Home() {
           <h1 className="text-3xl font-bold font-sans">Trash</h1>
           <h1 className="text-3xl  text-muted-foreground font-bold font-sans">Talk</h1>
           </div>
+          <div className="flex items-center gap-4 justify-between">
+            <Link href="/contact">
+                <span className="text-muted-foreground">Contact Us</span>
+            </Link>
+            <Link href="/privacy">
+              <span className="text-muted-foreground">Privacy Policy</span>
+            </Link>
+          </div>
+          <div className="flex items-center gap-4 justify-between">
           <ThemeToggle />
+            <Link href="/generate">
+              <Button size="lg" className=" mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                Generate Your First Tweet
+              </Button>
+            </Link>
+          </div>
         </header>
 
         <LandingPage />
-
-        <footer className="mt-16 text-center text-xs text-muted-foreground fade-in-up stagger-5">
-          <p>🚀 Powered by AI. Offense not guaranteed, but highly likely.</p>
-          <p className="mt-1">Built with questionable taste and solid tech.</p>
-          <div className="mt-4 flex justify-center space-x-4">
-            <a
-              href="https://twitter.com/xyzprtk"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-foreground transition-colors"
-            >
-              Twitter
-            </a>
-            <a
-              href="https://github.com/prtk2403/trashtalk"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-foreground transition-colors"
-            >
-              GitHub
-            </a>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </main>
   )
