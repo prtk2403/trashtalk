@@ -39,7 +39,7 @@ export default function Home() {
     <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
       <div className="container mx-auto px-4 py-8">
         <header className="flex justify-between items-center mb-8 fade-in-up">
-          <h1 className="text-3xl font-bold">TrashTalk</h1>
+          <h1 className="text-3xl font-bold font-sans">Trash</h1>
           <ThemeToggle />
         </header>
 
