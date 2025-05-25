@@ -8,22 +8,28 @@ import Link from "next/link"
 
 const sampleTweets = [
   {
-    text: "me: i should sleep\nalso me at 3am: researching if penguins have knees",
-    likes: 2847,
-    retweets: 892,
-    replies: 156,
+    text: "My brain has too many tabs open and they are all playing different songs.",
+    likes: 3102,
+    retweets: 750,
+    replies: 120,
+    displayName: "Glitch Mode",
+    username: "@ProcrastinationPro",
   },
   {
-    text: "job interview: 'where do you see yourself in 5 years?'\nme: 'sir this is a wendy's'",
-    likes: 5234,
-    retweets: 1456,
-    replies: 289,
+    text: "I told my plants I was going on vacation they said bring us back a shrubbery.",
+    likes: 4888,
+    retweets: 1201,
+    replies: 250,
+    displayName: "Sock Puppet",
+    username: "@ExistentialSquirrel",
   },
   {
-    text: "normalize saying 'that's above my pay grade' when someone asks what 2+2 equals",
-    likes: 3891,
-    retweets: 1123,
-    replies: 234,
+    text: "Decided to embrace the chaos today wore mismatched socks on purpose.",
+    likes: 4200,
+    retweets: 999,
+    replies: 180,
+    displayName: "Kitchen Tikka",
+    username: "@MyBrainIsSpaghetti",
   },
 ]
 
@@ -41,7 +47,7 @@ const features = [
   {
     icon: <Sparkles className="h-8 w-8" />,
     title: "Multiple Personalities",
-    description: "Choose from Gen Z burnout to corporate cringe - we've got all your toxic traits covered",
+    description: "Choose from Gen Z burnout to corporate cringe - we&apos;ve got all your toxic traits covered",
   },
 ]
 
@@ -123,12 +129,14 @@ export default function LandingPage() {
           <CardContent className="p-6">
             <div className="flex items-start space-x-3">
               <div className="w-12 h-12 bg-foreground rounded-full flex items-center justify-center">
-                <span className="text-background font-bold">U</span>
+                <span className="text-background font-bold">
+                  {sampleTweets[currentTweet].displayName.charAt(0).toUpperCase()}
+                </span>
               </div>
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
-                  <span className="font-bold">Unhinged User</span>
-                  <span className="text-muted-foreground">@chaotic_energy</span>
+                  <span className="font-bold">{sampleTweets[currentTweet].displayName}</span>
+                  <span className="text-muted-foreground">{sampleTweets[currentTweet].username}</span>
                   <span className="text-muted-foreground">·</span>
                   <span className="text-muted-foreground">2m</span>
                 </div>
@@ -193,19 +201,19 @@ export default function LandingPage() {
         <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {[
             {
-              name: "Sarah K.",
-              handle: "@sarahcodes",
-              text: "Finally, an AI that gets my vibe. My engagement is up 300% and my therapist is booked solid.",
+              name: "Brenda G.",
+              handle: "@BrainFogBrenda",
+              text: "My tweets used to be about my cat. Now they are performance art. Thanks for unlocking my inner weirdo!",
             },
             {
-              name: "Mike R.",
-              handle: "@mikethoughts",
-              text: "I went from 12 followers to 12K in a month. Now my mom thinks I'm internet famous.",
+              name: "Chad T.",
+              handle: "@ChadThundercockles",
+              text: "I accidentally became a micro-influencer in the niche market of existential dread. 10/10 would recommend.",
             },
             {
-              name: "Alex P.",
-              handle: "@alexrants",
-              text: "This app perfectly captures my 3am energy. My tweets now make sense to other insomniacs.",
+              name: "Anonymous User",
+              handle: "@ProbablyMyBoss",
+              text: "This app is the reason I have a secret Twitter account. My main feed is for sensible thoughts. This one is for THE TRUTH.",
             },
           ].map((testimonial, index) => (
             <Card key={index} className="bg-card border border-border">
@@ -219,7 +227,7 @@ export default function LandingPage() {
                     <p className="text-muted-foreground text-xs">{testimonial.handle}</p>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground">"{testimonial.text}"</p>
+                <p className="text-sm text-muted-foreground">&quot;{testimonial.text}&quot;</p>
                 <div className="flex mt-2">
                   {[...Array(5)].map((_, i) => (
                     <span key={i} className="text-foreground">

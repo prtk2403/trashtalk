@@ -293,7 +293,7 @@ export default function GeneratorDashboard() {
       // Provide a client-side fallback
       const clientFallbacks = [
         "me: i should sleep\nalso me: researching if penguins have knees",
-        "normalize saying 'that's above my pay grade' when someone asks what 2+2 equals",
+        "normalize saying 'that&apos;s above my pay grade' when someone asks what 2+2 equals",
         "my toxic trait is thinking I can finish a project in one day that actually takes six months",
       ]
 
@@ -470,7 +470,7 @@ export default function GeneratorDashboard() {
             </CardHeader>
             <CardContent>
               <Textarea
-                placeholder="Add your own twist... (e.g., 'about cats', 'involving pizza', 'existential crisis')"
+                placeholder="Add your own twist... (e.g., &apos;about cats&apos;, &apos;involving pizza&apos;, &apos;existential crisis&apos;)"
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
                 className="bg-background border-border resize-none text-sm"

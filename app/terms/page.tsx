@@ -104,7 +104,7 @@ export default function TermsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  By accessing and using TrashTalk ("the Service"), you accept and agree to be bound by the terms and
+                  By accessing and using TrashTalk (&quot;the Service&quot;), you accept and agree to be bound by the terms and
                   provision of this agreement. If you do not agree to abide by the above, please do not use this
                   service.
                 </p>
@@ -229,9 +229,9 @@ export default function TermsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h3 className="font-semibold mb-2">Service "As Is"</h3>
+                  <h3 className="font-semibold mb-2">Service &quot;As Is&quot;</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    TrashTalk is provided "as is" without warranties of any kind. We do not guarantee the accuracy,
+                    TrashTalk is provided &quot;as is&quot; without warranties of any kind. We do not guarantee the accuracy,
                     reliability, or appropriateness of generated content.
                   </p>
                 </div>
@@ -263,7 +263,7 @@ export default function TermsPage() {
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   We reserve the right to update these terms at any time. Changes will be posted on this page with an
-                  updated "Last modified" date. Your continued use of the service after changes constitutes acceptance
+                  updated &quot;Last modified&quot; date. Your continued use of the service after changes constitutes acceptance
                   of the new terms.
                 </p>
                 <p className="text-muted-foreground text-sm leading-relaxed">
@@ -309,7 +309,7 @@ export default function TermsPage() {
             </p>
             <Link href="/generate">
               <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                I Agree - Let's Generate Some Chaos
+                I Agree - Let&apos;s Generate Some Chaos
               </Button>
             </Link>
           </div>

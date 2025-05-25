@@ -47,18 +47,10 @@ export default function Home() {
           <h1 className="text-3xl font-bold font-sans">Trash</h1>
           <h1 className="text-3xl  text-muted-foreground font-bold font-sans">Talk</h1>
           </div>
-          <div className="flex items-center gap-4 justify-between">
-            <Link href="/contact">
-                <span className="text-muted-foreground">Contact Us</span>
-            </Link>
-            <Link href="/privacy">
-              <span className="text-muted-foreground">Privacy Policy</span>
-            </Link>
-          </div>
-          <div className="flex items-center gap-4 justify-between">
+          <div className="flex items-center gap-6 justify-between">
           <ThemeToggle />
             <Link href="/generate">
-              <Button size="lg" className=" mt-2 bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button size="lg" className=" mr-2 bg-primary text-primary-foreground hover:bg-primary/90">
                 Generate Your First Tweet
               </Button>
             </Link>

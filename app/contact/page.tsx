@@ -154,7 +154,7 @@ export default function ContactPage() {
                 <CardContent className="space-y-4">
                   {/* Contact Type Selection */}
                   <div>
-                    <label className="text-sm font-medium mb-3 block">What's this about?</label>
+                    <label className="text-sm font-medium mb-3 block">What&apos;s this about?</label>
                     <div className="grid grid-cols-2 gap-2">
                       {contactOptions.map((option) => (
                         <button
@@ -178,7 +178,7 @@ export default function ContactPage() {
                   <div>
                     <label className="text-sm font-medium mb-2 block">Your Message</label>
                     <Textarea
-                      placeholder="Tell us what's on your mind..."
+                      placeholder="Tell us what&apos;s on your mind..."
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       className="min-h-[120px] resize-none"
@@ -314,7 +314,7 @@ export default function ContactPage() {
 
           {/* Call to Action */}
           <div className="text-center space-y-4 pt-8">
-            <p className="text-muted-foreground">Haven't tried TrashTalk yet? What are you waiting for?</p>
+            <p className="text-muted-foreground">Haven&apos;t tried TrashTalk yet? What are you waiting for?</p>
             <Link href="/generate">
               <Button size="lg" className=" mt-3 bg-primary text-primary-foreground hover:bg-primary/90">
                 Generate Your First Tweet

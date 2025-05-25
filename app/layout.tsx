@@ -8,7 +8,7 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "TrashTalk - Twitter Shitpost Generator",
   description: "Generate hilarious Twitter shitposts with AI",
 }

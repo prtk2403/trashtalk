@@ -71,7 +71,7 @@ export default function PrivacyPage() {
               <Shield className="h-16 w-16 text-primary" />
             </div>
             <h1 className="text-4xl font-bold">Privacy Policy</h1>
-            <p className="text-xl text-muted-foreground">Your privacy matters. Here's how we protect it.</p>
+            <p className="text-xl text-muted-foreground">Your privacy matters. Here&apos;s how we protect it.</p>
             <p className="text-sm text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
           </div>
 
@@ -88,11 +88,11 @@ export default function PrivacyPage() {
                 <div className="flex items-start gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
                   <UserCheck className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <h3 className="font-semibold text-green-400">What We DON'T Store</h3>
+                    <h3 className="font-semibold text-green-400">What We DON&apos;T Store</h3>
                     <ul className="text-sm text-muted-foreground mt-1 space-y-1">
                       <li>• Your tweets or generated content</li>
                       <li>• Email addresses or personal info</li>
-                      <li>• Login credentials (we don't have accounts!)</li>
+                      <li>• Login credentials (we don&apos;t have accounts!)</li>
                       <li>• Browsing history or tracking cookies</li>
                     </ul>
                   </div>
@@ -201,15 +201,15 @@ export default function PrivacyPage() {
                 <div>
                   <h3 className="font-semibold mb-2">Google Gemini</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
-                    We use Google's Gemini AI to generate content. Your prompts are sent to Google's servers for
-                    processing, but we don't store them. Please review
+                    We use Google&apos;s Gemini AI to generate content. Your prompts are sent to Google&apos;s servers for
+                    processing, but we don&apos;t store them. Please review
                     <a
                       href="https://policies.google.com/privacy"
                       className="text-primary hover:underline"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      Google's Privacy Policy
+                      Google&apos;s Privacy Policy
                     </a>{" "}
                     for their data handling practices.
                   </p>
@@ -251,20 +251,20 @@ export default function PrivacyPage() {
                   <div>
                     <h3 className="font-semibold mb-2">Clear Local Data</h3>
                     <p className="text-muted-foreground text-sm">
-                      Clear your browser's local storage to remove all locally stored preferences and session data.
+                      Clear your browser&apos;s local storage to remove all locally stored preferences and session data.
                     </p>
                   </div>
                   <div>
                     <h3 className="font-semibold mb-2">No Tracking</h3>
                     <p className="text-muted-foreground text-sm">
-                      We don't use tracking cookies, analytics pixels, or any other tracking technologies beyond basic
+                      We don&apos;t use tracking cookies, analytics pixels, or any other tracking technologies beyond basic
                       visitor counting.
                     </p>
                   </div>
                   <div>
                     <h3 className="font-semibold mb-2">Data Portability</h3>
                     <p className="text-muted-foreground text-sm">
-                      Since we don't store your personal data, there's nothing to export or transfer - you're always in
+                      Since we don&apos;t store your personal data, there&apos;s nothing to export or transfer - you&apos;re always in
                       control.
                     </p>
                   </div>
@@ -285,7 +285,7 @@ export default function PrivacyPage() {
                   <h3 className="font-semibold mb-2">Policy Updates</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     We may update this privacy policy from time to time. Any changes will be posted on this page with an
-                    updated "Last modified" date. Continued use of the service constitutes acceptance of any changes.
+                    updated &quot;Last modified&quot; date. Continued use of the service constitutes acceptance of any changes.
                   </p>
                 </div>
                 <div>
