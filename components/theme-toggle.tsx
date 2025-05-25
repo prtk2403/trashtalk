@@ -6,8 +6,11 @@ import { Button } from "@/components/ui/button"
 
 export function ThemeToggle() {
   const [isWhiteTheme, setIsWhiteTheme] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+
     try {
       // Check if user has a theme preference in localStorage
       const savedTheme = localStorage.getItem("theme")
@@ -31,6 +34,8 @@ export function ThemeToggle() {
   }, [])
 
   const toggleTheme = () => {
+    if (!mounted) return
+
     try {
       const newTheme = !isWhiteTheme
       setIsWhiteTheme(newTheme)
@@ -46,6 +51,15 @@ export function ThemeToggle() {
     } catch (error) {
       console.warn("Theme toggle error:", error)
     }
+  }
+
+  // Don't render until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="rounded-full w-10 h-10 border-2 border-current flex items-center justify-center">
+        <div className="w-5 h-5 bg-current rounded-full opacity-50"></div>
+      </div>
+    )
   }
 
   return (

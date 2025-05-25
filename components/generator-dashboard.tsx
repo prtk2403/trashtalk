@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -21,10 +21,14 @@ import {
   Lightbulb,
   Target,
   Wand2,
+  Globe,
+  User,
+  Database,
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { Spinner } from "@/components/ui/spinner"
+import { useGlobalTweetCount } from "@/hooks/use-global-tweet-count"
 
 const toneDescriptions = {
   "gen-z": {
@@ -65,6 +69,9 @@ const tips = [
   "⚡ The AI learns from your reactions - be chaotic!",
   "🔥 Peak posting hours: 3am when everyone's unhinged",
   "🎭 Each tone has its own personality - experiment!",
+  "🌍 You're contributing to the global chaos counter!",
+  "📊 Supabase updates in real-time across all users",
+  "🔄 Real-time database sync keeps everyone connected",
 ]
 
 export default function GeneratorDashboard() {
@@ -72,25 +79,30 @@ export default function GeneratorDashboard() {
   const [tone, setTone] = useState("gen-z")
   const [customPrompt, setCustomPrompt] = useState("")
   const [isGenerating, setIsGenerating] = useState(false)
-  const [generationCount, setGenerationCount] = useState(0)
-  const [totalTweetsGenerated, setTotalTweetsGenerated] = useState(0)
+  const [sessionCount, setSessionCount] = useState(0)
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
   const [currentTip, setCurrentTip] = useState(0)
   const [history, setHistory] = useState<string[]>([])
+  const [hasMounted, setHasMounted] = useState(false)
 
-  // Load stats from localStorage on component mount
+  // Use the global tweet count hook with Supabase
+  const {
+    globalCount,
+    isLoading: isLoadingCount,
+    error: countError,
+    lastUpdated,
+    incrementCount,
+    refreshCount,
+  } = useGlobalTweetCount()
+
+  // Load session data from localStorage on component mount
   useEffect(() => {
     try {
-      const savedTotalTweets = localStorage.getItem("trashtalk_total_tweets")
       const savedSessionCount = localStorage.getItem("trashtalk_session_count")
       const savedHistory = localStorage.getItem("trashtalk_history")
 
-      if (savedTotalTweets) {
-        setTotalTweetsGenerated(Number.parseInt(savedTotalTweets, 10) || 0)
-      }
-
       if (savedSessionCount) {
-        setGenerationCount(Number.parseInt(savedSessionCount, 10) || 0)
+        setSessionCount(Number.parseInt(savedSessionCount, 10) || 0)
       }
 
       if (savedHistory) {
@@ -104,21 +116,21 @@ export default function GeneratorDashboard() {
 
       setSessionStartTime(new Date())
     } catch (error) {
-      console.warn("Error loading stats from localStorage:", error)
+      console.warn("Error loading session data from localStorage:", error)
       setSessionStartTime(new Date())
     }
+    setHasMounted(true)
   }, [])
 
-  // Save stats to localStorage whenever they change
+  // Save session data to localStorage whenever it changes
   useEffect(() => {
     try {
-      localStorage.setItem("trashtalk_total_tweets", totalTweetsGenerated.toString())
-      localStorage.setItem("trashtalk_session_count", generationCount.toString())
+      localStorage.setItem("trashtalk_session_count", sessionCount.toString())
       localStorage.setItem("trashtalk_history", JSON.stringify(history))
     } catch (error) {
-      console.warn("Error saving stats to localStorage:", error)
+      console.warn("Error saving session data to localStorage:", error)
     }
-  }, [totalTweetsGenerated, generationCount, history])
+  }, [sessionCount, history])
 
   useEffect(() => {
     // Rotate tips every 5 seconds
@@ -145,50 +157,85 @@ export default function GeneratorDashboard() {
   }
 
   const getChaosLevel = () => {
-    if (generationCount === 0) return "Dormant"
-    if (generationCount < 3) return "Warming Up"
-    if (generationCount < 5) return "Getting Spicy"
-    if (generationCount < 10) return "Full Chaos"
+    if (sessionCount === 0) return "Dormant"
+    if (sessionCount < 3) return "Warming Up"
+    if (sessionCount < 5) return "Getting Spicy"
+    if (sessionCount < 10) return "Full Chaos"
     return "MAXIMUM OVERDRIVE"
   }
 
   const getSanityPercentage = () => {
     const maxSanity = 100
-    const sanityLoss = Math.min(generationCount * 10, maxSanity)
+    const sanityLoss = Math.min(sessionCount * 10, maxSanity)
     return Math.max(maxSanity - sanityLoss, 0)
   }
 
-  const getViralPotential = () => {
-    const base = 50
-    const bonus = Math.min(generationCount * 5, 40)
-    const randomFactor = Math.floor(Math.random() * 10)
-    return Math.min(base + bonus + randomFactor, 99)
+  // Memoize sanityPercentage for consistent use in JSX
+  const sanityPercentage = useMemo(() => {
+    const maxSanity = 100;
+    const sanityLoss = Math.min(sessionCount * 10, maxSanity);
+    return Math.max(maxSanity - sanityLoss, 0);
+  }, [sessionCount]);
+
+  // Memoize viralPotential to be hydration-safe and consistent per render
+  const currentViralPotential = useMemo(() => {
+    const base = 50;
+    const bonus = Math.min(sessionCount * 5, 40);
+    
+    if (!hasMounted) {
+      // SSR and initial client render: use a deterministic value
+      // Use a fixed "random" factor for SSR to avoid mismatch.
+      // sessionCount is 0 during SSR and initial client render before useEffect.
+      const ssrBonus = Math.min(0 * 5, 40); // bonus will be 0
+      const fixedRandomFactorForSSR = 5; // Example fixed value
+      return Math.min(base + ssrBonus + fixedRandomFactorForSSR, 99); // e.g., 55%
+    }
+    
+    // Client-side after mount: use actual Math.random()
+    const randomFactor = Math.floor(Math.random() * 10);
+    return Math.min(base + bonus + randomFactor, 99);
+  }, [hasMounted, sessionCount]);
+
+  const formatLastUpdated = () => {
+    if (!lastUpdated) return ""
+    const date = new Date(lastUpdated)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffSecs = Math.floor(diffMs / 1000)
+
+    if (diffSecs < 60) return "Just now"
+    if (diffSecs < 3600) return `${Math.floor(diffSecs / 60)}m ago`
+    return `${Math.floor(diffSecs / 3600)}h ago`
   }
 
   const stats = [
     {
-      label: "Tweets Generated",
-      value: totalTweetsGenerated.toLocaleString(),
-      icon: <Zap className="h-4 w-4" />,
-      subtitle: `+${generationCount} this session`,
+      label: "Global Tweets",
+      value: isLoadingCount ? "Loading..." : globalCount.toLocaleString(),
+      icon: <Globe className="h-4 w-4" />,
+      subtitle: countError ? "Supabase error" : `Updated ${formatLastUpdated()}`,
+      isGlobal: true,
     },
     {
-      label: "Session Time",
-      value: getSessionDuration(),
-      icon: <Clock className="h-4 w-4" />,
-      subtitle: "Time well wasted",
+      label: "Your Session",
+      value: sessionCount.toString(),
+      icon: <User className="h-4 w-4" />,
+      subtitle: `${getSessionDuration()} active`,
+      isGlobal: false,
     },
     {
       label: "Chaos Level",
       value: getChaosLevel(),
       icon: <TrendingUp className="h-4 w-4" />,
-      subtitle: `${generationCount} generations`,
+      subtitle: `${sessionCount} generations`,
+      isGlobal: false,
     },
     {
       label: "Sanity Remaining",
-      value: `${getSanityPercentage()}%`,
+      value: `${sanityPercentage}%`,
       icon: <BarChart3 className="h-4 w-4" />,
-      subtitle: generationCount > 0 ? "Declining rapidly" : "Still intact",
+      subtitle: sessionCount > 0 ? "Declining rapidly" : "Still intact",
+      isGlobal: false,
     },
   ]
 
@@ -219,14 +266,16 @@ export default function GeneratorDashboard() {
 
       setShitpost(data.shitpost)
 
-      // Increment both session and total counts
-      setGenerationCount((prev) => prev + 1)
-      setTotalTweetsGenerated((prev) => prev + 1)
+      // Increment session count
+      setSessionCount((prev) => prev + 1)
+
+      // Increment global count in Supabase
+      const newGlobalCount = await incrementCount()
 
       // Add to history
       setHistory((prev) => [data.shitpost, ...prev.slice(0, 4)])
 
-      // Show fallback message if applicable
+      // Show success message with both counts
       if (data.fallback) {
         toast({
           title: "Using backup chaos",
@@ -234,11 +283,10 @@ export default function GeneratorDashboard() {
           duration: 3000,
         })
       } else {
-        // Show success message with stats
         toast({
-          title: "Chaos unleashed!",
-          description: `Tweet #${totalTweetsGenerated + 1} generated successfully`,
-          duration: 2000,
+          title: "Chaos unleashed globally!",
+          description: `Tweet #${newGlobalCount} added to Supabase database`,
+          duration: 3000,
         })
       }
     } catch (err) {
@@ -255,13 +303,13 @@ export default function GeneratorDashboard() {
       setShitpost(fallbackPost)
 
       // Still increment counts for fallback
-      setGenerationCount((prev) => prev + 1)
-      setTotalTweetsGenerated((prev) => prev + 1)
+      setSessionCount((prev) => prev + 1)
+      await incrementCount() // Try to increment global count even for fallbacks
       setHistory((prev) => [fallbackPost, ...prev.slice(0, 4)])
 
       toast({
         title: "Chaos never stops!",
-        description: `Network hiccup detected, but we've got backup chaos ready (#${totalTweetsGenerated + 1})`,
+        description: "Network hiccup detected, but we've got backup chaos ready",
         duration: 3000,
       })
     } finally {
@@ -269,9 +317,8 @@ export default function GeneratorDashboard() {
     }
   }
 
-  const resetStats = () => {
-    setGenerationCount(0)
-    setTotalTweetsGenerated(0)
+  const resetSessionStats = () => {
+    setSessionCount(0)
     setHistory([])
     setShitpost("")
     setCustomPrompt("")
@@ -279,7 +326,6 @@ export default function GeneratorDashboard() {
     setSessionStartTime(new Date())
 
     try {
-      localStorage.removeItem("trashtalk_total_tweets")
       localStorage.removeItem("trashtalk_session_count")
       localStorage.removeItem("trashtalk_history")
     } catch (error) {
@@ -287,7 +333,7 @@ export default function GeneratorDashboard() {
     }
 
     toast({
-      title: "Stats reset",
+      title: "Session reset",
       description: "Starting fresh with a clean slate",
       duration: 2000,
     })
@@ -319,10 +365,15 @@ export default function GeneratorDashboard() {
             {stats.map((stat, index) => (
               <Card
                 key={index}
-                className="bg-card border-border hover:border-foreground/50 transition-all duration-300"
+                className={`bg-card border-border hover:border-foreground/50 transition-all duration-300 ${
+                  stat.isGlobal ? "ring-1 ring-blue-500/20" : ""
+                }`}
               >
                 <CardContent className="p-4 text-center">
-                  <div className="flex justify-center mb-2 text-muted-foreground">{stat.icon}</div>
+                  <div className="flex justify-center mb-2 text-muted-foreground">
+                    {stat.isGlobal && <Database className="h-3 w-3 mr-1" />}
+                    {stat.icon}
+                  </div>
                   <div className="text-2xl font-bold">{stat.value}</div>
                   <div className="text-xs text-muted-foreground">{stat.label}</div>
                   {stat.subtitle && <div className="text-xs text-muted-foreground/70 mt-1">{stat.subtitle}</div>}
@@ -330,6 +381,32 @@ export default function GeneratorDashboard() {
               </Card>
             ))}
           </div>
+
+          {/* Supabase Status */}
+          <Card className="bg-card border-border">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Database className="h-4 w-4" />
+                  <span className="text-sm font-semibold">Supabase Status</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      countError ? "bg-red-500" : isLoadingCount ? "bg-yellow-500" : "bg-green-500"
+                    }`}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {countError ? "Error" : isLoadingCount ? "Loading" : "Connected"}
+                  </span>
+                </div>
+                <Button variant="ghost" size="sm" onClick={refreshCount} className="ml-auto h-6 px-2">
+                  <RefreshCw className="h-3 w-3" />
+                </Button>
+              </div>
+              {countError && <div className="mt-2 text-xs text-red-400 bg-red-900/20 p-2 rounded">{countError}</div>}
+            </CardContent>
+          </Card>
 
           {/* Tone Selection */}
           <Card className="bg-card border-border">
@@ -405,13 +482,16 @@ export default function GeneratorDashboard() {
                 <div>
                   <h2 className="text-3xl font-bold mb-2">Ready to Go Viral?</h2>
                   <p className="text-muted-foreground">
-                    Generate {generationCount > 0 ? "another" : "your first"} masterpiece of chaos
+                    Generate {sessionCount > 0 ? "another" : "your first"} masterpiece of chaos
                   </p>
-                  {generationCount > 0 && (
+                  {sessionCount > 0 && (
                     <p className="text-sm text-muted-foreground mt-1">
-                      You're on a roll! {generationCount} tweet{generationCount !== 1 ? "s" : ""} this session
+                      You're on a roll! {sessionCount} tweet{sessionCount !== 1 ? "s" : ""} this session
                     </p>
                   )}
+                  <p className="text-xs text-muted-foreground mt-2">
+                    🌍 Contributing to {globalCount.toLocaleString()} global tweets in Supabase
+                  </p>
                 </div>
 
                 <Button
@@ -432,9 +512,9 @@ export default function GeneratorDashboard() {
                   )}
                 </Button>
 
-                {generationCount > 0 && (
+                {sessionCount > 0 && (
                   <div className="text-sm text-muted-foreground">
-                    🎉 Total chaos unleashed: {totalTweetsGenerated} tweet{totalTweetsGenerated !== 1 ? "s" : ""}!
+                    🎉 Session chaos: {sessionCount} tweet{sessionCount !== 1 ? "s" : ""}!
                   </div>
                 )}
               </div>
@@ -448,7 +528,7 @@ export default function GeneratorDashboard() {
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center gap-2">
                     <Sparkles className="h-5 w-5" />
-                    Your Masterpiece #{totalTweetsGenerated}
+                    Global Tweet #{globalCount}
                   </span>
                   <Badge variant="outline" className={selectedTone.color}>
                     {selectedTone.name}
@@ -575,9 +655,9 @@ export default function GeneratorDashboard() {
               >
                 🌙 3AM Energy Only
               </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start" onClick={resetStats}>
+              <Button variant="outline" size="sm" className="w-full justify-start" onClick={resetSessionStats}>
                 <RefreshCw className="h-4 w-4 mr-2" />
-                Reset All Stats
+                Reset Session Stats
               </Button>
             </CardContent>
           </Card>
@@ -586,24 +666,35 @@ export default function GeneratorDashboard() {
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Chaos Meter
+                <Zap className="h-5 w-5" />
+                Your Impact
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span>Viral Potential</span>
-                  <span className="font-bold">{getViralPotential()}%</span>
+            <CardContent className="space-y-3">
+              {/* Sanity Level */}
+              <div>
+                <div className="text-sm text-muted-foreground">Sanity Level</div>
+                <div className="flex items-center gap-2">
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-foreground h-2 rounded-full transition-all duration-1000"
+                      style={{ width: `${sanityPercentage}%` }}
+                    />
+                  </div>
+                  <div className="text-sm font-bold">{sanityPercentage}%</div>
                 </div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div
-                    className="bg-foreground h-2 rounded-full transition-all duration-1000"
-                    style={{ width: `${getViralPotential()}%` }}
-                  ></div>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Based on your {generationCount} generation{generationCount !== 1 ? "s" : ""} and current chaos levels
+              </div>
+              {/* Viral Potential */}
+              <div>
+                <div className="text-sm text-muted-foreground">Viral Potential</div>
+                <div className="flex items-center gap-2">
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-1000"
+                      style={{ width: `${currentViralPotential}%` }}
+                    />
+                  </div>
+                  <div className="text-sm font-bold">{currentViralPotential}%</div>
                 </div>
               </div>
             </CardContent>

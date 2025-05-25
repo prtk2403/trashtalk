@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useState, useEffect } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import GeneratorDashboard from "@/components/generator-dashboard"
 import Link from "next/link"
@@ -8,17 +8,39 @@ import { Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function GeneratePage() {
+  const [mounted, setMounted] = useState(false)
+
   useEffect(() => {
+    setMounted(true)
+
     // Ensure theme is applied on page load
-    const savedTheme = localStorage.getItem("theme")
-    if (savedTheme === "white") {
-      document.documentElement.classList.add("white-theme")
-      document.documentElement.classList.remove("black-theme")
-    } else {
+    try {
+      const savedTheme = localStorage.getItem("theme")
+      if (savedTheme === "white") {
+        document.documentElement.classList.add("white-theme")
+        document.documentElement.classList.remove("black-theme")
+      } else {
+        document.documentElement.classList.add("black-theme")
+        document.documentElement.classList.remove("white-theme")
+      }
+    } catch (error) {
+      console.warn("Theme initialization error:", error)
       document.documentElement.classList.add("black-theme")
       document.documentElement.classList.remove("white-theme")
     }
   }, [])
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-4"></div>
+          <p>Loading Generator...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">

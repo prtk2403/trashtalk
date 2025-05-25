@@ -47,13 +47,34 @@ const features = [
 
 export default function LandingPage() {
   const [currentTweet, setCurrentTweet] = useState(0)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
     const interval = setInterval(() => {
       setCurrentTweet((prev) => (prev + 1) % sampleTweets.length)
     }, 4000)
     return () => clearInterval(interval)
-  }, [])
+  }, [mounted])
+
+  if (!mounted) {
+    return (
+      <div className="space-y-20 animate-pulse">
+        <div className="text-center space-y-8 py-20">
+          <div className="space-y-4">
+            <div className="h-32 bg-muted rounded-lg mx-auto max-w-4xl"></div>
+            <div className="h-8 bg-muted rounded-lg mx-auto max-w-2xl"></div>
+            <div className="h-6 bg-muted rounded-lg mx-auto max-w-3xl"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-20">
