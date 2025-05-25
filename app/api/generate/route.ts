@@ -1,9 +1,6 @@
-// app/api/generate/route.ts
-import { type NextRequest, NextResponse } from "next/server";
-import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
-import { supabase } from "@/lib/supabaseClient"; // Ensure this path is correct
+import { type NextRequest, NextResponse } from "next/server"
 
-// System prompt for Gemini (keep as is)
+// System prompt for Gemini
 const SYSTEM_PROMPT = `You are an extremely online, ironic shitposter who thrives on absurdity, memes, pop culture, and chaos. Your job is to generate short, punchy, hilarious tweets that are intentionally weird, sarcastic, edgy (but not offensive), and extremely relatable or unrelatable in a funny way.
 
 Tone:
@@ -31,150 +28,146 @@ Avoid:
 Output Format:
 - One tweet per output
 - No explanations
-- Keep it weird, keep it stupid, keep it funny
-- Use relevant hashtags wherever required
-`;
+- Keep it weird, keep it stupid, keep it funny`
 
-// Tone descriptions for Gemini (keep as is)
+// Tone descriptions for Gemini
 const TONE_DESCRIPTIONS = {
   "gen-z":
     "Generate a tweet with Gen Z Burnout humor. Use lowercase, internet slang, and existential dread mixed with humor.",
   "tech-bro":
     "Generate a tweet in Tech Bro Manifesto style. Reference hustle culture, startups, crypto, or productivity hacks in an ironic way.",
-  "corporate":
+  corporate:
     "Generate a tweet with Corporate Cringe humor. Use corporate buzzwords and jargon in an absurd, satirical way.",
-  "absurdist": "Generate a tweet with Absurdist Nihilism humor. Make it weird, random, and philosophical in a funny way.",
-  "anime": "Generate a tweet as an Anime Lord. Reference anime tropes and culture in an over-the-top, self-aware way.",
-};
+  absurdist: "Generate a tweet with Absurdist Nihilism humor. Make it weird, random, and philosophical in a funny way.",
+  anime: "Generate a tweet as an Anime Lord. Reference anime tropes and culture in an over-the-top, self-aware way.",
+}
 
-const RATE_LIMIT_COUNT = 10; // Max 10 posts
-const RATE_LIMIT_WINDOW_HOURS = 24; // per 24 hours
+// Fallback shitposts in case API fails
+const FALLBACK_SHITPOSTS = [
+  "me: i should sleep\nalso me at 3am: researching if penguins have knees",
+  "job interview: 'where do you see yourself in 5 years?'\nme: 'sir this is a wendy's'",
+  "normalize saying 'that's above my pay grade' when someone asks what 2+2 equals",
+  "my toxic trait is thinking I can finish a project in one day that actually takes six months",
+  "dating app idea: you match based on what browser extensions you have installed",
+  "just saw someone call a PDF a 'peef' and I think I need to log off for the day",
+  "every day i wake up and choose violence. then i snooze my alarm and go back to sleep.",
+  "me: i'm gonna be productive today\nalso me: learns how tall peppa pig is (7'1 btw)",
+]
 
 export async function POST(request: NextRequest) {
   try {
-    const { getUser } = getKindeServerSession();
-    const user = await getUser();
-
-    if (!user || !user.id) {
-      return NextResponse.json({ error: "Unauthorized. Please log in." }, { status: 401 });
+    // Parse request body with error handling
+    let body
+    try {
+      body = await request.json()
+    } catch (parseError) {
+      console.error("Failed to parse request body:", parseError)
+      return NextResponse.json({ error: "Invalid request format" }, { status: 400 })
     }
 
-    const { tone } = await request.json();
+    const { tone = "gen-z", customPrompt } = body
 
+    // Validate tone
+    if (!TONE_DESCRIPTIONS[tone as keyof typeof TONE_DESCRIPTIONS]) {
+      return NextResponse.json({ error: "Invalid tone specified" }, { status: 400 })
+    }
+
+    // Check if API key exists
     if (!process.env.GEMINI_API_KEY) {
-      return NextResponse.json({ error: "Gemini API key is not configured" }, { status: 500 });
+      console.warn("GEMINI_API_KEY not found, using fallback")
+      // Return a random fallback shitpost
+      const randomPost = FALLBACK_SHITPOSTS[Math.floor(Math.random() * FALLBACK_SHITPOSTS.length)]
+      return NextResponse.json({ shitpost: randomPost })
     }
 
-    // --- Rate Limiting ---
-    const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_HOURS * 60 * 60 * 1000).toISOString();
-    
-    const { data: recentPosts, error: countError } = await supabase
-      .from("posts")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("created_at", windowStart);
+    const toneDescription = TONE_DESCRIPTIONS[tone as keyof typeof TONE_DESCRIPTIONS]
 
-    if (countError) {
-      console.error("Error counting posts for rate limiting:", countError);
-      return NextResponse.json({ error: "Failed to check usage limits." }, { status: 500 });
+    // Construct the prompt for Gemini with optional custom prompt
+    let userPrompt = toneDescription
+    if (customPrompt && customPrompt.trim()) {
+      userPrompt += ` Focus the tweet on: ${customPrompt.trim()}`
     }
 
-    if (recentPosts && recentPosts.length >= RATE_LIMIT_COUNT) { // Supabase count is returned in a separate count property when {count: 'exact'}
-      const { count } = await supabase
-        .from("posts")
-        .select("id", { count: "exact" }) // Re-query to get actual count
-        .eq("user_id", user.id)
-        .gte("created_at", windowStart);
-        
-      if (count && count >= RATE_LIMIT_COUNT) {
-        return NextResponse.json(
-          { error: `Rate limit exceeded. Max ${RATE_LIMIT_COUNT} posts per ${RATE_LIMIT_WINDOW_HOURS} hours.` },
-          { status: 429 }
-        );
-      }
-    }
-    // A more robust way to get the count directly if using `head: true` might not return the count in the way expected for length check
-    // Let's get the count explicitly
-    const { count: postsCount, error: explicitCountError } = await supabase
-        .from('posts')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .gte('created_at', windowStart);
+    // Call Gemini API with timeout and error handling
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10 second timeout
 
-    if (explicitCountError) {
-        console.error('Error counting posts for rate limiting:', explicitCountError);
-        return NextResponse.json({ error: 'Failed to check usage limits due to count error.' }, { status: 500 });
-    }
-    
-    if (postsCount !== null && postsCount >= RATE_LIMIT_COUNT) {
-        return NextResponse.json(
-            { error: `Rate limit exceeded. You have made ${postsCount} posts. Max ${RATE_LIMIT_COUNT} posts per ${RATE_LIMIT_WINDOW_HOURS} hours.` },
-            { status: 429 }
-        );
-    }
-
-
-    // --- Generate Content ---
-    const toneDescription = TONE_DESCRIPTIONS[tone as keyof typeof TONE_DESCRIPTIONS] || TONE_DESCRIPTIONS["gen-z"];
-    const userPrompt = `${toneDescription}`;
-
-    const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, // Updated model
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user", // Gemini prefers 'user' and 'model' roles
-              parts: [{ text: SYSTEM_PROMPT }, { text: userPrompt }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.9,
-            topK: 40, // TopK can be 1 for gemini-1.5-flash, check docs for 2.0
-            topP: 0.95,
-            maxOutputTokens: 300, // Increased slightly based on Gemini 1.5 Flash typical usage
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-          // Optional: safetySettings if needed
-          // safetySettings: [
-          //   { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-          //   { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-          //   { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-          //   { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-          // ]
-        }),
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [{ text: SYSTEM_PROMPT }, { text: userPrompt }],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.9,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 300,
+            },
+          }),
+          signal: controller.signal,
+        },
+      )
+
+      clearTimeout(timeoutId)
+
+      if (!response.ok) {
+        console.error("Gemini API error:", response.status, response.statusText)
+        throw new Error(`Gemini API returned ${response.status}`)
       }
-    );
 
-    const geminiData = await geminiResponse.json();
+      const data = await response.json()
 
-    if (!geminiResponse.ok || !geminiData.candidates || geminiData.candidates.length === 0) {
-      console.error("Gemini API error:", geminiData);
-      const errorDetail = geminiData.error?.message || "Failed to generate content from AI model";
-      return NextResponse.json({ error: errorDetail }, { status: geminiResponse.status || 500 });
+      // Handle potential errors in the Gemini response
+      if (!data.candidates || data.candidates.length === 0) {
+        console.error("Gemini API returned no candidates:", data)
+        throw new Error("No content generated")
+      }
+
+      // Extract the generated text
+      const generatedText = data.candidates[0]?.content?.parts?.[0]?.text
+
+      if (!generatedText) {
+        console.error("No text in Gemini response:", data)
+        throw new Error("No text generated")
+      }
+
+      return NextResponse.json({ shitpost: generatedText.trim() })
+    } catch (fetchError) {
+      clearTimeout(timeoutId)
+      console.error("Gemini API fetch error:", fetchError)
+
+      // Return fallback on API failure
+      const randomPost = FALLBACK_SHITPOSTS[Math.floor(Math.random() * FALLBACK_SHITPOSTS.length)]
+      return NextResponse.json({
+        shitpost: randomPost,
+        fallback: true,
+        message: "Using fallback due to API issues",
+      })
     }
-
-    const generatedText = geminiData.candidates[0].content.parts[0].text.trim();
-
-    // --- Store Post in Supabase ---
-    const { error: insertError } = await supabase
-      .from("posts")
-      .insert([{ user_id: user.id, content: generatedText, tone: tone }]);
-
-    if (insertError) {
-      console.error("Error saving post to Supabase:", insertError);
-      // Don't fail the whole request if saving fails, but log it.
-      // Optionally, you could return an error here if saving is critical.
-    }
-
-    return NextResponse.json({ shitpost: generatedText });
-
   } catch (error) {
-    console.error("Error in /api/generate:", error);
-    const message = error instanceof Error ? error.message : "An unexpected error occurred";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("Error in generate route:", error)
+
+    // Return fallback on any error
+    const randomPost = FALLBACK_SHITPOSTS[Math.floor(Math.random() * FALLBACK_SHITPOSTS.length)]
+    return NextResponse.json({
+      shitpost: randomPost,
+      fallback: true,
+      message: "Using fallback due to server error",
+    })
   }
+}
+
+// Handle other HTTP methods
+export async function GET() {
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 })
 }

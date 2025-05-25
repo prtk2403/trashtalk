@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import {Inter} from "next/font/google";
-import Navbar from "./components/Navbar";
-import { AuthProvider } from "./AuthProvider";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -20,16 +19,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <AuthProvider>
-
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable}antialiased`}
         >
-        <Navbar />
-        {children}
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
-    </AuthProvider>
   );
 }
