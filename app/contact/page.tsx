@@ -263,7 +263,7 @@ export default function ContactPage() {
                   <div>
                     <h3 className="font-medium mb-1">Do you store my tweets?</h3>
                     <p className="text-sm text-muted-foreground">
-                      Nope! We don't store any of your generated content. Check our{" "}
+                      Nope! We don&apos;t store any of your generated content. Check our{" "}
                       <Link href="/privacy" className="text-primary hover:underline">
                         privacy policy
                       </Link>{" "}

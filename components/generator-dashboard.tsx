@@ -506,7 +506,7 @@ export default function GeneratorDashboard() {
                   </p>
                   {sessionCount > 0 && (
                     <p className="text-sm text-muted-foreground mt-1">
-                      You're on a roll! {sessionCount} tweet{sessionCount !== 1 ? "s" : ""} this session
+                      You&apos;re on a roll! {sessionCount} tweet{sessionCount !== 1 ? "s" : ""} this session
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground mt-2">

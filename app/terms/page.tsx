@@ -133,7 +133,7 @@ export default function TermsPage() {
                   <h3 className="font-semibold mb-2">Prohibited Use</h3>
                   <ul className="text-muted-foreground text-sm space-y-1 ml-4">
                     <li>• Generate content intended to harass, threaten, or harm others</li>
-                    <li>• Use the service for illegal activities or to violate others' rights</li>
+                    <li>• Use the service for illegal activities or to violate others&apos; rights</li>
                     <li>• Attempt to reverse engineer, hack, or exploit the service</li>
                     <li>• Use automated tools to spam or abuse the service</li>
                     <li>• Impersonate others or misrepresent your identity</li>
