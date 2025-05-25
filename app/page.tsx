@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import LandingPage from "@/components/landing-page"
+import { Trash } from "lucide-react"
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
@@ -39,7 +40,11 @@ export default function Home() {
     <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
       <div className="container mx-auto px-4 py-8">
         <header className="flex justify-between items-center mb-8 fade-in-up">
+          <div className="flex items-center">
+          <span className="text-muted-foreground"> <Trash className="fill-muted-foreground h-6 w-6 mr-2"/></span>
           <h1 className="text-3xl font-bold font-sans">Trash</h1>
+          <h1 className="text-3xl  text-muted-foreground font-bold font-sans">Talk</h1>
+          </div>
           <ThemeToggle />
         </header>
 
@@ -48,6 +53,24 @@ export default function Home() {
         <footer className="mt-16 text-center text-xs text-muted-foreground fade-in-up stagger-5">
           <p>🚀 Powered by AI. Offense not guaranteed, but highly likely.</p>
           <p className="mt-1">Built with questionable taste and solid tech.</p>
+          <div className="mt-4 flex justify-center space-x-4">
+            <a
+              href="https://twitter.com/xyzprtk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              Twitter
+            </a>
+            <a
+              href="https://github.com/prtk2403/trashtalk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-foreground transition-colors"
+            >
+              GitHub
+            </a>
+          </div>
         </footer>
       </div>
     </main>

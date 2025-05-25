@@ -1,22 +1,16 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
+import { TweetCard } from "@/components/tweet-card"
 import {
-  Clipboard,
-  Twitter,
-  Sparkles,
   Zap,
   Clock,
   TrendingUp,
   RefreshCw,
-  Heart,
-  MessageCircle,
-  Repeat2,
   BarChart3,
   Lightbulb,
   Target,
@@ -24,11 +18,13 @@ import {
   Globe,
   User,
   Database,
+  Shield,
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
 import { Spinner } from "@/components/ui/spinner"
 import { useGlobalTweetCount } from "@/hooks/use-global-tweet-count"
+import { useUserIdentification } from "@/hooks/use-user-identification"
 
 const toneDescriptions = {
   "gen-z": {
@@ -72,6 +68,8 @@ const tips = [
   "🌍 You're contributing to the global chaos counter!",
   "📊 Supabase updates in real-time across all users",
   "🔄 Real-time database sync keeps everyone connected",
+  "🔒 Your identity is anonymous but unique",
+  "🎲 Each generation is completely randomized",
 ]
 
 export default function GeneratorDashboard() {
@@ -83,7 +81,6 @@ export default function GeneratorDashboard() {
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null)
   const [currentTip, setCurrentTip] = useState(0)
   const [history, setHistory] = useState<string[]>([])
-  const [hasMounted, setHasMounted] = useState(false)
 
   // Use the global tweet count hook with Supabase
   const {
@@ -95,11 +92,16 @@ export default function GeneratorDashboard() {
     refreshCount,
   } = useGlobalTweetCount()
 
+  // Use user identification hook
+  const { userId, sessionId, isLoaded: userLoaded, resetUser, getUserAnalytics } = useUserIdentification()
+
   // Load session data from localStorage on component mount
   useEffect(() => {
+    if (!userLoaded) return
+
     try {
-      const savedSessionCount = localStorage.getItem("trashtalk_session_count")
-      const savedHistory = localStorage.getItem("trashtalk_history")
+      const savedSessionCount = localStorage.getItem(`trashtalk_session_count_${userId}`)
+      const savedHistory = localStorage.getItem(`trashtalk_history_${userId}`)
 
       if (savedSessionCount) {
         setSessionCount(Number.parseInt(savedSessionCount, 10) || 0)
@@ -119,18 +121,19 @@ export default function GeneratorDashboard() {
       console.warn("Error loading session data from localStorage:", error)
       setSessionStartTime(new Date())
     }
-    setHasMounted(true)
-  }, [])
+  }, [userId, userLoaded])
 
   // Save session data to localStorage whenever it changes
   useEffect(() => {
+    if (!userLoaded || !userId) return
+
     try {
-      localStorage.setItem("trashtalk_session_count", sessionCount.toString())
-      localStorage.setItem("trashtalk_history", JSON.stringify(history))
+      localStorage.setItem(`trashtalk_session_count_${userId}`, sessionCount.toString())
+      localStorage.setItem(`trashtalk_history_${userId}`, JSON.stringify(history))
     } catch (error) {
       console.warn("Error saving session data to localStorage:", error)
     }
-  }, [sessionCount, history])
+  }, [sessionCount, history, userId, userLoaded])
 
   useEffect(() => {
     // Rotate tips every 5 seconds
@@ -170,31 +173,12 @@ export default function GeneratorDashboard() {
     return Math.max(maxSanity - sanityLoss, 0)
   }
 
-  // Memoize sanityPercentage for consistent use in JSX
-  const sanityPercentage = useMemo(() => {
-    const maxSanity = 100;
-    const sanityLoss = Math.min(sessionCount * 10, maxSanity);
-    return Math.max(maxSanity - sanityLoss, 0);
-  }, [sessionCount]);
-
-  // Memoize viralPotential to be hydration-safe and consistent per render
-  const currentViralPotential = useMemo(() => {
-    const base = 50;
-    const bonus = Math.min(sessionCount * 5, 40);
-    
-    if (!hasMounted) {
-      // SSR and initial client render: use a deterministic value
-      // Use a fixed "random" factor for SSR to avoid mismatch.
-      // sessionCount is 0 during SSR and initial client render before useEffect.
-      const ssrBonus = Math.min(0 * 5, 40); // bonus will be 0
-      const fixedRandomFactorForSSR = 5; // Example fixed value
-      return Math.min(base + ssrBonus + fixedRandomFactorForSSR, 99); // e.g., 55%
-    }
-    
-    // Client-side after mount: use actual Math.random()
-    const randomFactor = Math.floor(Math.random() * 10);
-    return Math.min(base + bonus + randomFactor, 99);
-  }, [hasMounted, sessionCount]);
+  const getViralPotential = () => {
+    const base = 50
+    const bonus = Math.min(sessionCount * 5, 40)
+    const randomFactor = Math.floor(Math.random() * 10)
+    return Math.min(base + bonus + randomFactor, 99)
+  }
 
   const formatLastUpdated = () => {
     if (!lastUpdated) return ""
@@ -232,7 +216,7 @@ export default function GeneratorDashboard() {
     },
     {
       label: "Sanity Remaining",
-      value: `${sanityPercentage}%`,
+      value: `${getSanityPercentage()}%`,
       icon: <BarChart3 className="h-4 w-4" />,
       subtitle: sessionCount > 0 ? "Declining rapidly" : "Still intact",
       isGlobal: false,
@@ -240,17 +224,31 @@ export default function GeneratorDashboard() {
   ]
 
   const generateShitpost = async () => {
+    // Prevent rapid successive calls
+    if (isGenerating) return
+
     setIsGenerating(true)
 
     try {
+      // Add small random delay to ensure uniqueness
+      await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 200))
+
+      // Get user analytics for the request
+      const analytics = getUserAnalytics()
+
       const response = await fetch("/api/generate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Cache-Control": "no-cache",
         },
         body: JSON.stringify({
           tone,
           customPrompt: customPrompt.trim() || undefined,
+          timestamp: Date.now(),
+          sessionId: sessionId,
+          userId: userId,
+          analytics,
         }),
       })
 
@@ -326,8 +324,8 @@ export default function GeneratorDashboard() {
     setSessionStartTime(new Date())
 
     try {
-      localStorage.removeItem("trashtalk_session_count")
-      localStorage.removeItem("trashtalk_history")
+      localStorage.removeItem(`trashtalk_session_count_${userId}`)
+      localStorage.removeItem(`trashtalk_history_${userId}`)
     } catch (error) {
       console.warn("Error clearing localStorage:", error)
     }
@@ -339,25 +337,25 @@ export default function GeneratorDashboard() {
     })
   }
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shitpost)
-    toast({
-      title: "Copied to clipboard",
-      description: "Your shitpost is ready to unleash chaos",
-      duration: 2000,
-    })
-  }
-
-  const tweetIt = () => {
-    const tweetText = encodeURIComponent(shitpost)
-    window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, "_blank")
-  }
-
   const selectedTone = toneDescriptions[tone as keyof typeof toneDescriptions]
+
+  // Show loading state until user identification is ready
+  if (!userLoaded) {
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <Spinner size="lg" className="mx-auto mb-4" />
+            <p className="text-muted-foreground">Initializing your chaos session...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
-      <div className="grid lg:grid-cols-3 gap-8 h-full">
+      <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Left Sidebar - Controls & Info */}
         <div className="space-y-6">
           {/* Dynamic Stats Cards */}
@@ -369,18 +367,40 @@ export default function GeneratorDashboard() {
                   stat.isGlobal ? "ring-1 ring-blue-500/20" : ""
                 }`}
               >
-                <CardContent className="p-4 text-center">
+                <CardContent className="p-3 sm:p-4 text-center">
                   <div className="flex justify-center mb-2 text-muted-foreground">
                     {stat.isGlobal && <Database className="h-3 w-3 mr-1" />}
                     {stat.icon}
                   </div>
-                  <div className="text-2xl font-bold">{stat.value}</div>
+                  <div className="text-lg sm:text-2xl font-bold">{stat.value}</div>
                   <div className="text-xs text-muted-foreground">{stat.label}</div>
                   {stat.subtitle && <div className="text-xs text-muted-foreground/70 mt-1">{stat.subtitle}</div>}
                 </CardContent>
               </Card>
             ))}
           </div>
+
+          {/* User Identity Status */}
+          <Card className="bg-card border-border">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  <span className="text-sm font-semibold">Anonymous Identity</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <span className="text-xs text-muted-foreground">Active</span>
+                </div>
+                <Button variant="ghost" size="sm" onClick={resetUser} className="ml-auto h-6 px-2">
+                  <RefreshCw className="h-3 w-3" />
+                </Button>
+              </div>
+              <div className="mt-2 text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                ID: {userId.slice(0, 20)}...
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Supabase Status */}
           <Card className="bg-card border-border">
@@ -410,8 +430,8 @@ export default function GeneratorDashboard() {
 
           {/* Tone Selection */}
           <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <Target className="h-5 w-5" />
                 Choose Your Chaos
               </CardTitle>
@@ -431,8 +451,8 @@ export default function GeneratorDashboard() {
               </Select>
 
               <div className={`p-3 rounded-lg border ${selectedTone.color}`}>
-                <div className="font-semibold mb-1">{selectedTone.name}</div>
-                <div className="text-sm opacity-80 mb-2">{selectedTone.description}</div>
+                <div className="font-semibold mb-1 text-sm">{selectedTone.name}</div>
+                <div className="text-xs opacity-80 mb-2">{selectedTone.description}</div>
                 <div className="text-xs">
                   <strong>Examples:</strong> {selectedTone.examples.join(" • ")}
                 </div>
@@ -442,8 +462,8 @@ export default function GeneratorDashboard() {
 
           {/* Custom Prompt */}
           <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <Lightbulb className="h-5 w-5" />
                 Custom Chaos (Optional)
               </CardTitle>
@@ -453,7 +473,7 @@ export default function GeneratorDashboard() {
                 placeholder="Add your own twist... (e.g., 'about cats', 'involving pizza', 'existential crisis')"
                 value={customPrompt}
                 onChange={(e) => setCustomPrompt(e.target.value)}
-                className="bg-background border-border resize-none"
+                className="bg-background border-border resize-none text-sm"
                 rows={3}
               />
             </CardContent>
@@ -477,11 +497,11 @@ export default function GeneratorDashboard() {
         <div className="space-y-6">
           {/* Generation Button */}
           <Card className="bg-card border-border">
-            <CardContent className="p-8 text-center">
+            <CardContent className="p-6 sm:p-8 text-center">
               <div className="space-y-6">
                 <div>
-                  <h2 className="text-3xl font-bold mb-2">Ready to Go Viral?</h2>
-                  <p className="text-muted-foreground">
+                  <h2 className="text-2xl sm:text-3xl font-bold mb-2">Ready to Go Viral?</h2>
+                  <p className="text-muted-foreground text-sm sm:text-base">
                     Generate {sessionCount > 0 ? "another" : "your first"} masterpiece of chaos
                   </p>
                   {sessionCount > 0 && (
@@ -498,7 +518,7 @@ export default function GeneratorDashboard() {
                   onClick={generateShitpost}
                   disabled={isGenerating}
                   size="lg"
-                  className="w-full py-8 text-xl bg-foreground text-background hover:scale-105 transition-all duration-300 group"
+                  className="w-full py-6 sm:py-8 text-lg sm:text-xl bg-foreground text-background hover:scale-105 transition-all duration-300 group"
                 >
                   {isGenerating ? (
                     <>
@@ -507,7 +527,8 @@ export default function GeneratorDashboard() {
                     </>
                   ) : (
                     <>
-                      <Wand2 className="mr-3 h-6 w-6 group-hover:rotate-12 transition-transform" />💩 Unleash the Chaos
+                      <Wand2 className="mr-3 h-5 w-5 sm:h-6 sm:w-6 group-hover:rotate-12 transition-transform" />💩
+                      Unleash the Chaos
                     </>
                   )}
                 </Button>
@@ -521,65 +542,14 @@ export default function GeneratorDashboard() {
             </CardContent>
           </Card>
 
-          {/* Generated Content */}
+          {/* Generated Content - Using new TweetCard component */}
           {shitpost && (
-            <Card className="bg-card border-border border-2 hover:border-foreground/50 transition-all duration-300">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Sparkles className="h-5 w-5" />
-                    Global Tweet #{globalCount}
-                  </span>
-                  <Badge variant="outline" className={selectedTone.color}>
-                    {selectedTone.name}
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Tweet Preview */}
-                <div className="bg-background border border-border rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-12 h-12 bg-foreground rounded-full flex items-center justify-center">
-                      <span className="text-background font-bold">U</span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="font-bold">Chaotic You</span>
-                        <span className="text-muted-foreground">@unhinged_user</span>
-                        <span className="text-muted-foreground">·</span>
-                        <span className="text-muted-foreground">now</span>
-                      </div>
-                      <p className="text-foreground whitespace-pre-line mb-4 text-lg leading-relaxed">{shitpost}</p>
-                      <div className="flex items-center space-x-6 text-muted-foreground">
-                        <div className="flex items-center space-x-1 hover:text-foreground transition-colors cursor-pointer">
-                          <MessageCircle className="h-4 w-4" />
-                          <span className="text-sm">{Math.floor(Math.random() * 500) + 50}</span>
-                        </div>
-                        <div className="flex items-center space-x-1 hover:text-foreground transition-colors cursor-pointer">
-                          <Repeat2 className="h-4 w-4" />
-                          <span className="text-sm">{Math.floor(Math.random() * 1000) + 100}</span>
-                        </div>
-                        <div className="flex items-center space-x-1 hover:text-foreground transition-colors cursor-pointer">
-                          <Heart className="h-4 w-4" />
-                          <span className="text-sm">{Math.floor(Math.random() * 2000) + 500}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <Button onClick={copyToClipboard} variant="outline" className="flex-1 hover:bg-accent">
-                    <Clipboard className="h-4 w-4 mr-2" />
-                    Copy to Clipboard
-                  </Button>
-                  <Button onClick={tweetIt} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white">
-                    <Twitter className="h-4 w-4 mr-2" />🚀 Tweet This Chaos
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <TweetCard
+              content={shitpost}
+              tweetNumber={globalCount}
+              tone={selectedTone}
+              className="border-2 hover:border-foreground/50"
+            />
           )}
         </div>
 
@@ -587,8 +557,8 @@ export default function GeneratorDashboard() {
         <div className="space-y-6">
           {/* Recent History */}
           <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <Clock className="h-5 w-5" />
                 Recent Chaos
               </CardTitle>
@@ -608,7 +578,9 @@ export default function GeneratorDashboard() {
                       })
                     }}
                   >
-                    <p className="text-sm line-clamp-3 group-hover:text-foreground transition-colors">{post}</p>
+                    <p className="text-sm line-clamp-3 group-hover:text-foreground transition-colors text-left">
+                      {post}
+                    </p>
                     <div className="text-xs text-muted-foreground mt-1">Click to reload</div>
                   </div>
                 ))
@@ -624,8 +596,8 @@ export default function GeneratorDashboard() {
 
           {/* Quick Actions */}
           <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <Zap className="h-5 w-5" />
                 Quick Actions
               </CardTitle>
@@ -634,7 +606,7 @@ export default function GeneratorDashboard() {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start text-sm"
                 onClick={() => setCustomPrompt("about my existential crisis")}
               >
                 😵 Existential Crisis Mode
@@ -642,7 +614,7 @@ export default function GeneratorDashboard() {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start text-sm"
                 onClick={() => setCustomPrompt("involving cats and chaos")}
               >
                 🐱 Cat Chaos Generator
@@ -650,12 +622,12 @@ export default function GeneratorDashboard() {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full justify-start"
+                className="w-full justify-start text-sm"
                 onClick={() => setCustomPrompt("3am thoughts")}
               >
                 🌙 3AM Energy Only
               </Button>
-              <Button variant="outline" size="sm" className="w-full justify-start" onClick={resetSessionStats}>
+              <Button variant="outline" size="sm" className="w-full justify-start text-sm" onClick={resetSessionStats}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Reset Session Stats
               </Button>
@@ -664,37 +636,26 @@ export default function GeneratorDashboard() {
 
           {/* Dynamic Chaos Meter */}
           <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5" />
-                Your Impact
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <TrendingUp className="h-5 w-5" />
+                Chaos Meter
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {/* Sanity Level */}
-              <div>
-                <div className="text-sm text-muted-foreground">Sanity Level</div>
-                <div className="flex items-center gap-2">
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-foreground h-2 rounded-full transition-all duration-1000"
-                      style={{ width: `${sanityPercentage}%` }}
-                    />
-                  </div>
-                  <div className="text-sm font-bold">{sanityPercentage}%</div>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span>Viral Potential</span>
+                  <span className="font-bold">{getViralPotential()}%</span>
                 </div>
-              </div>
-              {/* Viral Potential */}
-              <div>
-                <div className="text-sm text-muted-foreground">Viral Potential</div>
-                <div className="flex items-center gap-2">
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-1000"
-                      style={{ width: `${currentViralPotential}%` }}
-                    />
-                  </div>
-                  <div className="text-sm font-bold">{currentViralPotential}%</div>
+                <div className="w-full bg-muted rounded-full h-2">
+                  <div
+                    className="bg-foreground h-2 rounded-full transition-all duration-1000"
+                    style={{ width: `${getViralPotential()}%` }}
+                  ></div>
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Based on your {sessionCount} generation{sessionCount !== 1 ? "s" : ""} and global Supabase trends
                 </div>
               </div>
             </CardContent>

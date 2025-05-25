@@ -81,7 +81,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="text-center space-y-8 py-20">
         <div className="space-y-4">
-          <h1 className="text-6xl md:text-8xl font-black tracking-tight fade-in-up">
+          <h1 className="text-6xl font-bold md:text-8xl tracking-tight fade-in-up p-10">
             Get Absolutely
             <br />
             <span className="relative">
@@ -104,13 +104,13 @@ export default function LandingPage() {
           <Link href="/generate">
             <Button
               size="lg"
-              className="text-xl px-8 py-6 bg-foreground text-background hover:scale-105 transition-all duration-300 group"
+              className="text-center mt-5 text-xl px-8 py-6 bg-foreground text-background hover:scale-105 transition-all duration-300 group"
             >
               Start Being Problematic
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
-          <p className="text-sm text-muted-foreground mt-2">
+          <p className="text-sm text-muted-foreground mt-4">
             Warning: May cause sudden increase in followers and existential dread
           </p>
         </div>
@@ -242,9 +242,9 @@ export default function LandingPage() {
         <Link href="/generate">
           <Button
             size="lg"
-            className="text-xl px-12 py-6 bg-foreground text-background hover:scale-110 transition-all duration-300 animate-pulse-glow"
+            className="text-xl mt-6 px-12 py-6 bg-foreground text-background hover:scale-110 transition-all duration-300 animate-pulse-glow"
           >
-            🚀 Launch My Chaos Era
+            🚀 Ignite the Chaos
           </Button>
         </Link>
         <p className="text-sm text-muted-foreground">No credit card required. Just your dignity (optional).</p>
