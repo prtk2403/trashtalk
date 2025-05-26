@@ -46,7 +46,7 @@ export function TweetCard({
     navigator.clipboard.writeText(content)
     toast({
       title: "Copied to clipboard",
-      description: "Your shitpost is ready to unleash chaos",
+      description: "Your post is ready to be posted",
       duration: 2000,
     })
   }
@@ -168,15 +168,14 @@ export function TweetCard({
 
         {/* Action Buttons - Responsive layout */}
         {showActions && (
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <Button onClick={copyToClipboard} variant="outline" className="flex-1 hover:bg-accent text-sm" size="sm">
-              <Clipboard className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span className="truncate">Copy to Clipboard</span>
+          <div className="flex flex-row justify-center items-center  sm:flex-row gap-6">
+            <Button onClick={copyToClipboard}  variant="outline" className="flex items-center justify-center hover:bg-accent text-sm" size="sm">
+                <Clipboard className="h-4 w-4 flex-shrink-0 hover:text-muted-foreground" />
             </Button>
 
-            <Button onClick={tweetIt} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-sm" size="sm">
-              <Twitter className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span className="truncate">🚀 Tweet This Chaos</span>
+            <Button onClick={tweetIt} className="flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white text-sm" size="sm">
+              <Twitter className="h-4 w-4 mr-1 flex-shrink-0" />
+              <span className="truncate">Tweet This Post</span>
             </Button>
           </div>
         )}

@@ -252,7 +252,7 @@ export default function LandingPage() {
             size="lg"
             className="text-xl mt-6 px-12 py-6 bg-foreground text-background hover:scale-110 transition-all duration-300 animate-pulse-glow"
           >
-            🚀 Ignite the Chaos
+            Start Posting
           </Button>
         </Link>
         <p className="text-sm text-muted-foreground">No credit card required. Just your dignity (optional).</p>

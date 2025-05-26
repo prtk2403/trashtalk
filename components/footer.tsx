@@ -50,6 +50,12 @@ export function Footer() {
               <Link href="/generate" className="block text-muted-foreground hover:text-foreground transition-colors">
                 Generate Tweets
               </Link>
+              <Link
+                href="/how-it-works"
+                className="block text-muted-foreground hover:text-foreground transition-colors"
+              >
+                How It Works
+              </Link>
               <Link href="/privacy" className="block text-muted-foreground hover:text-foreground transition-colors">
                 Privacy Policy
               </Link>

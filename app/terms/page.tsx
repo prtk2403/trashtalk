@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Home, FileText, AlertTriangle, Scale, Shield, Clock } from "lucide-react"
-
+import { Footer } from "@/components/footer"
 export default function TermsPage() {
   const [mounted, setMounted] = useState(false)
 
@@ -315,6 +315,7 @@ export default function TermsPage() {
           </div>
         </div>
       </div>
+      <Footer />
     </div>
   )
 }

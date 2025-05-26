@@ -21,7 +21,7 @@ import {
 } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { Toaster } from "@/components/ui/toaster"
-
+import { Footer } from "@/components/footer"
 export default function ContactPage() {
   const [mounted, setMounted] = useState(false)
   const [message, setMessage] = useState("")
@@ -325,6 +325,7 @@ export default function ContactPage() {
       </div>
 
       <Toaster />
+      <Footer />
     </div>
   )
 }

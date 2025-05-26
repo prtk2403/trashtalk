@@ -163,7 +163,7 @@ export default function GeneratorDashboard() {
     if (sessionCount === 0) return "Dormant"
     if (sessionCount < 3) return "Warming Up"
     if (sessionCount < 5) return "Getting Spicy"
-    if (sessionCount < 10) return "Full Chaos"
+    if (sessionCount < 10) return "Insane"
     return "MAXIMUM OVERDRIVE"
   }
 
@@ -276,13 +276,13 @@ export default function GeneratorDashboard() {
       // Show success message with both counts
       if (data.fallback) {
         toast({
-          title: "Using backup chaos",
-          description: data.message || "API temporarily unavailable, but chaos continues!",
+          title: "Using backup posts",
+          description: data.message || "API temporarily unavailable, but post continues!",
           duration: 3000,
         })
       } else {
         toast({
-          title: "Chaos unleashed globally!",
+          title: "Post generated globally!",
           description: `Tweet #${newGlobalCount} added to Supabase database`,
           duration: 3000,
         })
@@ -346,7 +346,7 @@ export default function GeneratorDashboard() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <Spinner size="lg" className="mx-auto mb-4" />
-            <p className="text-muted-foreground">Initializing your chaos session...</p>
+            <p className="text-muted-foreground">Initializing your session...</p>
           </div>
         </div>
       </div>
@@ -433,7 +433,7 @@ export default function GeneratorDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Target className="h-5 w-5" />
-                Choose Your Chaos
+                Choose Your Mood
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -465,7 +465,7 @@ export default function GeneratorDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Lightbulb className="h-5 w-5" />
-                Custom Chaos (Optional)
+                Custom Instructions (Optional)
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -523,19 +523,19 @@ export default function GeneratorDashboard() {
                   {isGenerating ? (
                     <>
                       <Spinner size="sm" className="mr-3" />
-                      Brewing Chaos...
+                      Generating...
                     </>
                   ) : (
                     <>
-                      <Wand2 className="mr-3 h-5 w-5 sm:h-6 sm:w-6 group-hover:rotate-12 transition-transform" />💩
-                      Unleash the Chaos
+                      <Wand2 className="mr-3 h-5 w-5 sm:h-6 sm:w-6 group-hover:rotate-12 transition-transform" />
+                      Generate Post
                     </>
                   )}
                 </Button>
 
                 {sessionCount > 0 && (
                   <div className="text-sm text-muted-foreground">
-                    🎉 Session chaos: {sessionCount} tweet{sessionCount !== 1 ? "s" : ""}!
+                    🎉 posts generated this session : {sessionCount} tweet{sessionCount !== 1 ? "s" : ""}!
                   </div>
                 )}
               </div>
@@ -560,7 +560,7 @@ export default function GeneratorDashboard() {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Clock className="h-5 w-5" />
-                Recent Chaos
+                Recent Posts
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -587,7 +587,7 @@ export default function GeneratorDashboard() {
               ) : (
                 <div className="text-center text-muted-foreground py-8">
                   <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No chaos generated yet</p>
+                  <p className="text-sm">No posts generated yet</p>
                   <p className="text-xs">Your history will appear here</p>
                 </div>
               )}
