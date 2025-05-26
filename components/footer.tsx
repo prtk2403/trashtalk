@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Github, Twitter, Heart, Users, TrendingUp, Trash } from "lucide-react"
 import { useVisitorTracking } from "@/hooks/use-visitor-tracking"
 import { useGlobalTweetCount } from "@/hooks/use-global-tweet-count"
-
+import Image from "next/image"
 export function Footer() {
   const { totalVisitors, isLoading: visitorLoading } = useVisitorTracking()
   const { globalCount, isLoading: tweetLoading } = useGlobalTweetCount()
@@ -110,10 +110,21 @@ export function Footer() {
             <div className="flex items-center gap-1">
               Built with <Heart className="h-4 w-4 text-red-500 fill-red-500" /> for the chaotic internet by <Link href="https://prtx.xyz" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Pratheek Nistala</Link>
             </div>
-            <div className="flex items-center gap-4">
-              <span>🚀 Powered by Vercel</span>
-              <span>🗄️ Data by Supabase</span>
-              <span>🤖 AI by Gemini</span>
+            <div className="flex flex-col items-center gap-2 text-center md:flex-row md:gap-4 md:text-left">
+                <div className="flex items-center gap-1"> Engineered by
+                    <Image src="/vercel.svg" alt="Vercel" width={16} height={16} style={{ height: 'auto' }} />
+                    <Link href="https://vercel.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Vercel </Link>
+                </div>
+              <span className="hidden md:inline">|</span>
+              <div className="flex items-center gap-1"> Managed by
+                    <Image src="/supabase.png" alt="Supabase" width={16} height={16} style={{ height: 'auto' }} />
+                    <Link href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Supabase</Link>
+                </div>
+              <span className="hidden md:inline">|</span>
+              <div className="flex items-center gap-1"> Powered by
+                    <Image src="/gemini.svg" alt="Gemini" width={16} height={16} style={{ height: 'auto' }} />
+                    <Link href="https://gemini.google.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Gemini</Link>
+                </div>
             </div>
           </div>
         </div>
