@@ -467,7 +467,7 @@ export default function HowItWorksPage() {
                       <h3 className="font-semibold mb-2">What is Sanity Remaining?</h3>
                       <p className="text-muted-foreground text-sm leading-relaxed">
                         The Sanity Remaining indicator is our way of tracking how far you&apos;ve descended
-                        into the beautiful madness of internet culture. This metric is inversely related to your activity: a higher volume of engagement, like those rapidly generated tweets, will reflect a charmingly lower "sanity" level.
+                        into the beautiful madness of internet culture. This metric is inversely related to your activity: a higher volume of engagement, like those rapidly generated tweets, will reflect a charmingly lower &quot;sanity&quot; level.
                       </p>
                     </div>
 
@@ -602,7 +602,7 @@ export default function HowItWorksPage() {
                     <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/20 rounded-lg p-4">
                       <h3 className="font-semibold mb-2">What We Store vs. What We Don&apos;t</h3>
                       <p className="text-muted-foreground text-sm leading-relaxed">
-                        TrashTalk follows a strict "privacy-first" approach. We store just enough data to make your
+                        TrashTalk follows a strict &quot;privacy-first&quot; approach. We store just enough data to make your
                         experience awesome, but never enough to compromise your privacy.
                       </p>
                     </div>
